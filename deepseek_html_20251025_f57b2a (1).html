@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Fantasy Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #D2691E;
+            --accent-color: #CD853F;
+            --dark-color: #3D2B1F;
+            --light-color: #F5DEB3;
+            --success-color: #228B22;
+            --danger-color: #8B0000;
+            --warning-color: #FFD700;
+            --info-color: #1E90FF;
+            --magic-color: #8A2BE2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--light-color);
+            min-height: 100vh;
+            padding: 10px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+            border-radius: 10px;
+            border: 2px solid var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-title {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 2.5rem;
+            color: var(--warning-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 5px;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(61, 43, 31, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid var(--accent-color);
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--light-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color));
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: rgba(61, 43, 31, 0.8);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--accent-color);
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            border-right: 1px solid var(--accent-color);
+            min-width: 100px;
+        }
+
+        .nav-tab:last-child {
+            border-right: none;
+        }
+
+        .nav-tab.active {
+            background: var(--primary-color);
+            color: var(--warning-color);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(139, 69, 19, 0.5);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(61, 43, 31, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            min-height: 400px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.5rem;
+            color: var(--warning-color);
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 8px;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .action-card {
+            background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .action-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .action-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--warning-color);
+        }
+
+        .action-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .action-desc {
+            font-size: 0.8rem;
+            color: var(--light-color);
+            opacity: 0.8;
+        }
+
+        .cooldown {
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: var(--danger-color);
+        }
+
+        .energy-cost {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--magic-color);
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .inventory-item {
+            background: rgba(210, 105, 30, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid var(--accent-color);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .inventory-item:hover {
+            background: rgba(210, 105, 30, 0.4);
+        }
+
+        .item-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: var(--warning-color);
+        }
+
+        .item-count {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .item-rarity {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.7rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .rarity-common { background: #808080; }
+        .rarity-uncommon { background: #228B22; }
+        .rarity-rare { background: #1E90FF; }
+        .rarity-epic { background: #8A2BE2; }
+        .rarity-legendary { background: #FFD700; color: #000; }
+
+        .crafting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(61, 43, 31, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .craft-info {
+            flex: 1;
+        }
+
+        .craft-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .craft-requirements {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+
+        .craft-button {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .craft-button:hover {
+            background: #1f7a1f;
+        }
+
+        .craft-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .pvp-player {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(61, 43, 31, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .player-details {
+            flex: 1;
+        }
+
+        .player-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .player-level {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+
+        .attack-button {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .attack-button:hover {
+            background: #a00;
+        }
+
+        .admin-panel {
+            background: rgba(139, 0, 0, 0.2);
+            border: 2px solid var(--danger-color);
+        }
+
+        .admin-section {
+            margin-bottom: 20px;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--accent-color);
+            background: rgba(61, 43, 31, 0.8);
+            color: var(--light-color);
+            font-family: 'Cinzel', serif;
+        }
+
+        .admin-button {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .admin-button:hover {
+            background: #a00;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .skill-item {
+            background: rgba(61, 43, 31, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .skill-name {
+            font-weight: bold;
+        }
+
+        .skill-level {
+            color: var(--warning-color);
+        }
+
+        .skill-bar {
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+        }
+
+        .upgrade-button {
+            background: var(--info-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .upgrade-button:hover {
+            background: #1a7ad9;
+        }
+
+        .upgrade-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .guild-section {
+            background: rgba(61, 43, 31, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .guild-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .guild-members {
+            margin-top: 15px;
+        }
+
+        .guild-member {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .join-guild-button {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .join-guild-button:hover {
+            background: #1f7a1f;
+        }
+
+        .market-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(61, 43, 31, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .market-info {
+            flex: 1;
+        }
+
+        .market-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .market-price {
+            font-size: 0.8rem;
+            color: var(--warning-color);
+        }
+
+        .buy-button {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+        }
+
+        .buy-button:hover {
+            background: #1f7a1f;
+        }
+
+        .buy-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.5s;
+            max-width: 300px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid var(--secondary-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+
+        .modal-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.8rem;
+            color: var(--warning-color);
+            margin-bottom: 15px;
+        }
+
+        .modal-text {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal-button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .modal-button:hover {
+            background: var(--accent-color);
+        }
+
+        .modal-button.primary {
+            background: var(--success-color);
+        }
+
+        .modal-button.danger {
+            background: var(--danger-color);
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 50px auto;
+            background: rgba(61, 43, 31, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-title {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 2.2rem;
+            color: var(--warning-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid var(--accent-color);
+            background: rgba(41, 29, 19, 0.8);
+            color: var(--light-color);
+            font-family: 'Cinzel', serif;
+        }
+
+        .login-button {
+            width: 100%;
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .login-button:hover {
+            background: #1f7a1f;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .register-link a {
+            color: var(--warning-color);
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(61, 43, 31, 0.8);
+            border-radius: 8px;
+            border: 1px solid var(--accent-color);
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            background: rgba(210, 105, 30, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--warning-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 600px) {
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .player-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .info-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Уведомление -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Модальное окно -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title" class="modal-title">Заголовок</h2>
+            <p id="modal-text" class="modal-text">Текст модального окна</p>
+            <div class="modal-buttons">
+                <button id="modal-button-ok" class="modal-button primary">OK</button>
+                <button id="modal-button-cancel" class="modal-button">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран входа -->
+    <div id="login-screen" class="login-form">
+        <h1 class="login-title">RPG Fantasy</h1>
+        <div class="form-group">
+            <label class="form-label">Имя пользователя</label>
+            <input type="text" id="username" class="form-input" placeholder="Введите имя">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Пароль</label>
+            <input type="password" id="password" class="form-input" placeholder="Введите пароль">
+        </div>
+        <button id="login-button" class="login-button">Войти в игру</button>
+        <div class="register-link">
+            Нет аккаунта? <a href="#" id="register-link">Зарегистрируйтесь</a> в боте Telegram!
+        </div>
+    </div>
+
+    <!-- Основной интерфейс игры -->
+    <div id="game-screen" class="container" style="display: none;">
+        <div class="header">
+            <h1 class="game-title">RPG Fantasy</h1>
+            <p>Эпическое приключение ждет!</p>
+        </div>
+
+        <div class="player-info">
+            <div class="info-item">
+                <div class="info-label">Игрок</div>
+                <div id="player-name" class="info-value">Герой</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Уровень</div>
+                <div id="player-level" class="info-value">1</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Здоровье</div>
+                <div id="player-health" class="info-value">100/100</div>
+                <div class="progress-bar">
+                    <div id="health-bar" class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Энергия</div>
+                <div id="player-energy" class="info-value">100/100</div>
+                <div class="progress-bar">
+                    <div id="energy-bar" class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Опыт</div>
+                <div id="player-exp" class="info-value">0/100</div>
+                <div class="progress-bar">
+                    <div id="exp-bar" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Золото</div>
+                <div id="player-gold" class="info-value">50</div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="actions">Действия</div>
+            <div class="nav-tab" data-tab="inventory">Инвентарь</div>
+            <div class="nav-tab" data-tab="crafting">Крафт</div>
+            <div class="nav-tab" data-tab="skills">Навыки</div>
+            <div class="nav-tab" data-tab="pvp">PvP Арена</div>
+            <div class="nav-tab" data-tab="market">Рынок</div>
+            <div class="nav-tab" data-tab="guild">Гильдия</div>
+            <div class="nav-tab admin-tab" data-tab="admin" style="display: none;">Админ</div>
+        </div>
+
+        <!-- Вкладка Действия -->
+        <div id="actions-tab" class="tab-content active">
+            <h2 class="section-title">Действия</h2>
+            <div class="action-grid">
+                <div class="action-card" data-action="hunt">
+                    <div class="energy-cost">10</div>
+                    <div class="action-icon">⚔️</div>
+                    <div class="action-name">Охота</div>
+                    <div class="action-desc">Охотиться на монстров для получения опыта и золота</div>
+                    <div class="cooldown" id="hunt-cooldown"></div>
+                </div>
+                <div class="action-card" data-action="mine">
+                    <div class="energy-cost">8</div>
+                    <div class="action-icon">⛏️</div>
+                    <div class="action-name">Добыча руды</div>
+                    <div class="action-desc">Добывать руду для крафта</div>
+                    <div class="cooldown" id="mine-cooldown"></div>
+                </div>
+                <div class="action-card" data-action="fish">
+                    <div class="energy-cost">7</div>
+                    <div class="action-icon">🎣</div>
+                    <div class="action-name">Рыбалка</div>
+                    <div class="action-desc">Ловить рыбу для приготовления еды</div>
+                    <div class="cooldown" id="fish-cooldown"></div>
+                </div>
+                <div class="action-card" data-action="train">
+                    <div class="energy-cost">15</div>
+                    <div class="action-icon">💪</div>
+                    <div class="action-name">Тренировка</div>
+                    <div class="action-desc">Увеличить характеристики</div>
+                    <div class="cooldown" id="train-cooldown"></div>
+                </div>
+                <div class="action-card" data-action="quest">
+                    <div class="energy-cost">20</div>
+                    <div class="action-icon">📜</div>
+                    <div class="action-name">Задание</div>
+                    <div class="action-desc">Выполнить задание для награды</div>
+                    <div class="cooldown" id="quest-cooldown"></div>
+                </div>
+                <div class="action-card" data-action="bonus">
+                    <div class="energy-cost">0</div>
+                    <div class="action-icon">🎁</div>
+                    <div class="action-name">Ежедневный бонус</div>
+                    <div class="action-desc">Получить ежедневную награду</div>
+                    <div class="cooldown" id="bonus-cooldown"></div>
+                </div>
+                <div class="action-card" data-action="dungeon">
+                    <div class="energy-cost">25</div>
+                    <div class="action-icon">🏰</div>
+                    <div class="action-name">Подземелье</div>
+                    <div class="action-desc">Исследовать подземелье для редких наград</div>
+                    <div class="cooldown" id="dungeon-cooldown"></div>
+                </div>
+                <div class="action-card" data-action="rest">
+                    <div class="energy-cost">-30</div>
+                    <div class="action-icon">🛌</div>
+                    <div class="action-name">Отдых</div>
+                    <div class="action-desc">Восстановить здоровье и энергию</div>
+                    <div class="cooldown" id="rest-cooldown"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка Инвентарь -->
+        <div id="inventory-tab" class="tab-content">
+            <h2 class="section-title">Инвентарь</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-items">0</div>
+                    <div class="stat-label">Всего предметов</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="inventory-value">0</div>
+                    <div class="stat-label">Стоимость инвентаря</div>
+                </div>
+            </div>
+            <div class="inventory-grid">
+                <!-- Инвентарь будет заполняться динамически -->
+            </div>
+        </div>
+
+        <!-- Вкладка Крафт -->
+        <div id="crafting-tab" class="tab-content">
+            <h2 class="section-title">Крафт</h2>
+            <div class="crafting-item">
+                <div class="craft-info">
+                    <div class="craft-name">Простое зелье</div>
+                    <div class="craft-requirements">Требуется: 2 мяса, 1 рыба</div>
+                </div>
+                <button class="craft-button" data-craft="potion">Создать</button>
+            </div>
+            <div class="crafting-item">
+                <div class="craft-info">
+                    <div class="craft-name">Деревянный меч</div>
+                    <div class="craft-requirements">Требуется: 5 руды, 2 мяса</div>
+                </div>
+                <button class="craft-button" data-craft="sword">Создать</button>
+            </div>
+            <div class="crafting-item">
+                <div class="craft-info">
+                    <div class="craft-name">Кожаная броня</div>
+                    <div class="craft-requirements">Требуется: 10 мяса, 5 рыбы</div>
+                </div>
+                <button class="craft-button" data-craft="armor">Создать</button>
+            </div>
+            <div class="crafting-item">
+                <div class="craft-info">
+                    <div class="craft-name">Улучшенное зелье</div>
+                    <div class="craft-requirements">Требуется: 1 простое зелье, 5 руды</div>
+                </div>
+                <button class="craft-button" data-craft="super-potion">Создать</button>
+            </div>
+            <div class="crafting-item">
+                <div class="craft-info">
+                    <div class="craft-name">Стальной меч</div>
+                    <div class="craft-requirements">Требуется: 15 руды, 3 деревянных меча</div>
+                </div>
+                <button class="craft-button" data-craft="steel-sword">Создать</button>
+            </div>
+            <div class="crafting-item">
+                <div class="craft-info">
+                    <div class="craft-name">Магический амулет</div>
+                    <div class="craft-requirements">Требуется: 5 улучшенных зелий, 10 руды</div>
+                </div>
+                <button class="craft-button" data-craft="amulet">Создать</button>
+            </div>
+        </div>
+
+        <!-- Вкладка Навыки -->
+        <div id="skills-tab" class="tab-content">
+            <h2 class="section-title">Навыки</h2>
+            <div class="skills-grid">
+                <div class="skill-item">
+                    <div class="skill-header">
+                        <div class="skill-name">Сила</div>
+                        <div class="skill-level">Ур. <span id="strength-level">1</span></div>
+                    </div>
+                    <div class="skill-bar">
+                        <div id="strength-bar" class="skill-fill" style="width: 0%"></div>
+                    </div>
+                    <button class="upgrade-button" data-skill="strength">Улучшить (50 золота)</button>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-header">
+                        <div class="skill-name">Ловкость</div>
+                        <div class="skill-level">Ур. <span id="agility-level">1</span></div>
+                    </div>
+                    <div class="skill-bar">
+                        <div id="agility-bar" class="skill-fill" style="width: 0%"></div>
+                    </div>
+                    <button class="upgrade-button" data-skill="agility">Улучшить (50 золота)</button>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-header">
+                        <div class="skill-name">Интеллект</div>
+                        <div class="skill-level">Ур. <span id="intelligence-level">1</span></div>
+                    </div>
+                    <div class="skill-bar">
+                        <div id="intelligence-bar" class="skill-fill" style="width: 0%"></div>
+                    </div>
+                    <button class="upgrade-button" data-skill="intelligence">Улучшить (50 золота)</button>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-header">
+                        <div class="skill-name">Выносливость</div>
+                        <div class="skill-level">Ур. <span id="stamina-level">1</span></div>
+                    </div>
+                    <div class="skill-bar">
+                        <div id="stamina-bar" class="skill-fill" style="width: 0%"></div>
+                    </div>
+                    <button class="upgrade-button" data-skill="stamina">Улучшить (50 золота)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка PvP Арена -->
+        <div id="pvp-tab" class="tab-content">
+            <h2 class="section-title">PvP Арена</h2>
+            <div class="pvp-player">
+                <div class="player-details">
+                    <div class="player-name">Соперник 1</div>
+                    <div class="player-level">Уровень: 5</div>
+                </div>
+                <button class="attack-button" data-opponent="1">Атаковать</button>
+            </div>
+            <div class="pvp-player">
+                <div class="player-details">
+                    <div class="player-name">Соперник 2</div>
+                    <div class="player-level">Уровень: 7</div>
+                </div>
+                <button class="attack-button" data-opponent="2">Атаковать</button>
+            </div>
+            <div class="pvp-player">
+                <div class="player-details">
+                    <div class="player-name">Соперник 3</div>
+                    <div class="player-level">Уровень: 10</div>
+                </div>
+                <button class="attack-button" data-opponent="3">Атаковать</button>
+            </div>
+            <div class="pvp-player">
+                <div class="player-details">
+                    <div class="player-name">Соперник 4</div>
+                    <div class="player-level">Уровень: 12</div>
+                </div>
+                <button class="attack-button" data-opponent="4">Атаковать</button>
+            </div>
+            <div class="pvp-player">
+                <div class="player-details">
+                    <div class="player-name">Соперник 5</div>
+                    <div class="player-level">Уровень: 15</div>
+                </div>
+                <button class="attack-button" data-opponent="5">Атаковать</button>
+            </div>
+        </div>
+
+        <!-- Вкладка Рынок -->
+        <div id="market-tab" class="tab-content">
+            <h2 class="section-title">Рынок</h2>
+            <div class="market-item">
+                <div class="market-info">
+                    <div class="market-name">Зелье здоровья</div>
+                    <div class="market-price">Цена: 20 золота</div>
+                </div>
+                <button class="buy-button" data-item="health-potion">Купить</button>
+            </div>
+            <div class="market-item">
+                <div class="market-info">
+                    <div class="market-name">Зелье энергии</div>
+                    <div class="market-price">Цена: 15 золота</div>
+                </div>
+                <button class="buy-button" data-item="energy-potion">Купить</button>
+            </div>
+            <div class="market-item">
+                <div class="market-info">
+                    <div class="market-name">Улучшенный меч</div>
+                    <div class="market-price">Цена: 100 золота</div>
+                </div>
+                <button class="buy-button" data-item="upgraded-sword">Купить</button>
+            </div>
+            <div class="market-item">
+                <div class="market-info">
+                    <div class="market-name">Защитный амулет</div>
+                    <div class="market-price">Цена: 80 золота</div>
+                </div>
+                <button class="buy-button" data-item="defense-amulet">Купить</button>
+            </div>
+            <div class="market-item">
+                <div class="market-info">
+                    <div class="market-name">Сундук с сокровищами</div>
+                    <div class="market-price">Цена: 200 золота</div>
+                </div>
+                <button class="buy-button" data-item="treasure-chest">Купить</button>
+            </div>
+        </div>
+
+        <!-- Вкладка Гильдия -->
+        <div id="guild-tab" class="tab-content">
+            <h2 class="section-title">Гильдия</h2>
+            <div class="guild-section">
+                <div class="guild-info">
+                    <div>
+                        <div class="info-label">Название гильдии</div>
+                        <div class="info-value">Рыцари Света</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Уровень гильдии</div>
+                        <div class="info-value">5</div>
+                    </div>
+                </div>
+                <div class="guild-info">
+                    <div>
+                        <div class="info-label">Участников</div>
+                        <div class="info-value">12/20</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Рейтинг</div>
+                        <div class="info-value">#15</div>
+                    </div>
+                </div>
+                <button class="join-guild-button">Вступить в гильдию</button>
+            </div>
+            <div class="guild-members">
+                <h3 style="margin-bottom: 10px;">Участники гильдии</h3>
+                <div class="guild-member">
+                    <div>Грондор (Лидер)</div>
+                    <div>Ур. 25</div>
+                </div>
+                <div class="guild-member">
+                    <div>Элвин</div>
+                    <div>Ур. 22</div>
+                </div>
+                <div class="guild-member">
+                    <div>Торин</div>
+                    <div>Ур. 20</div>
+                </div>
+                <div class="guild-member">
+                    <div>Арагорн</div>
+                    <div>Ур. 18</div>
+                </div>
+                <div class="guild-member">
+                    <div>Леголас</div>
+                    <div>Ур. 17</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка Админ-панель -->
+        <div id="admin-tab" class="tab-content admin-panel">
+            <h2 class="section-title">Админ-панель</h2>
+            <div class="admin-section">
+                <h3 style="margin-bottom: 10px;">Управление игроком</h3>
+                <input type="text" id="admin-gold" class="admin-input" placeholder="Количество золота">
+                <button class="admin-button" id="add-gold">Добавить золото</button>
+                <input type="text" id="admin-exp" class="admin-input" placeholder="Количество опыта">
+                <button class="admin-button" id="add-exp">Добавить опыт</button>
+                <input type="text" id="admin-level" class="admin-input" placeholder="Уровень">
+                <button class="admin-button" id="set-level">Установить уровень</button>
+            </div>
+            <div class="admin-section">
+                <h3 style="margin-bottom: 10px;">Управление предметами</h3>
+                <select id="admin-item" class="admin-input">
+                    <option value="meat">Мясо</option>
+                    <option value="fish">Рыба</option>
+                    <option value="ore">Руда</option>
+                    <option value="potion">Простое зелье</option>
+                    <option value="sword">Деревянный меч</option>
+                </select>
+                <input type="text" id="admin-item-count" class="admin-input" placeholder="Количество">
+                <button class="admin-button" id="add-item">Добавить предмет</button>
+            </div>
+            <div class="admin-section">
+                <h3 style="margin-bottom: 10px;">Системные команды</h3>
+                <button class="admin-button" id="reset-player">Сбросить игрока</button>
+                <button class="admin-button" id="save-game">Сохранить игру</button>
+                <button class="admin-button" id="load-game">Загрузить игру</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            RPG Fantasy Bot | Сайт: <a href="https://lesatrufa-byte.github.io/VeyGamee/" style="color: var(--warning-color);">https://lesatrufa-byte.github.io/VeyGamee/</a>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+        }
+
+        // Данные игрока
+        let player = {
+            username: '',
+            level: 1,
+            exp: 0,
+            expToNextLevel: 100,
+            health: 100,
+            maxHealth: 100,
+            energy: 100,
+            maxEnergy: 100,
+            gold: 50,
+            isAdmin: false,
+            skills: {
+                strength: { level: 1, exp: 0, expToNextLevel: 100 },
+                agility: { level: 1, exp: 0, expToNextLevel: 100 },
+                intelligence: { level: 1, exp: 0, expToNextLevel: 100 },
+                stamina: { level: 1, exp: 0, expToNextLevel: 100 }
+            },
+            inventory: {
+                meat: { name: 'Мясо', count: 0, rarity: 'common' },
+                fish: { name: 'Рыба', count: 0, rarity: 'common' },
+                ore: { name: 'Руда', count: 0, rarity: 'common' },
+                potion: { name: 'Простое зелье', count: 0, rarity: 'uncommon' },
+                sword: { name: 'Деревянный меч', count: 0, rarity: 'uncommon' },
+                armor: { name: 'Кожаная броня', count: 0, rarity: 'rare' },
+                'super-potion': { name: 'Улучшенное зелье', count: 0, rarity: 'rare' },
+                'steel-sword': { name: 'Стальной меч', count: 0, rarity: 'epic' },
+                amulet: { name: 'Магический амулет', count: 0, rarity: 'legendary' }
+            },
+            cooldowns: {
+                hunt: 0,
+                mine: 0,
+                fish: 0,
+                train: 0,
+                quest: 0,
+                bonus: 0,
+                dungeon: 0,
+                rest: 0
+            },
+            lastBonus: 0
+        };
+
+        // DOM элементы
+        const loginScreen = document.getElementById('login-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginButton = document.getElementById('login-button');
+        const registerLink = document.getElementById('register-link');
+        const playerName = document.getElementById('player-name');
+        const playerLevel = document.getElementById('player-level');
+        const playerHealth = document.getElementById('player-health');
+        const playerEnergy = document.getElementById('player-energy');
+        const playerExp = document.getElementById('player-exp');
+        const playerGold = document.getElementById('player-gold');
+        const healthBar = document.getElementById('health-bar');
+        const energyBar = document.getElementById('energy-bar');
+        const expBar = document.getElementById('exp-bar');
+        const notification = document.getElementById('notification');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+        const modalButtonOk = document.getElementById('modal-button-ok');
+        const modalButtonCancel = document.getElementById('modal-button-cancel');
+        const adminTab = document.querySelector('.admin-tab');
+
+        // Функция показа уведомления
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.style.background = type === 'success' ? 'var(--success-color)' : 
+                                           type === 'error' ? 'var(--danger-color)' : 
+                                           type === 'warning' ? 'var(--warning-color)' : 'var(--info-color)';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Функция показа модального окна
+        function showModal(title, text, onConfirm = null, onCancel = null) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            modal.style.display = 'flex';
+            
+            modalButtonOk.onclick = function() {
+                modal.style.display = 'none';
+                if (onConfirm) onConfirm();
+            };
+            
+            modalButtonCancel.onclick = function() {
+                modal.style.display = 'none';
+                if (onCancel) onCancel();
+            };
+        }
+
+        // Функция обновления интерфейса игрока
+        function updatePlayerUI() {
+            playerName.textContent = player.username;
+            playerLevel.textContent = player.level;
+            playerHealth.textContent = `${player.health}/${player.maxHealth}`;
+            playerEnergy.textContent = `${player.energy}/${player.maxEnergy}`;
+            playerExp.textContent = `${player.exp}/${player.expToNextLevel}`;
+            playerGold.textContent = player.gold;
+            
+            healthBar.style.width = `${(player.health / player.maxHealth) * 100}%`;
+            energyBar.style.width = `${(player.energy / player.maxEnergy) * 100}%`;
+            expBar.style.width = `${(player.exp / player.expToNextLevel) * 100}%`;
+            
+            // Обновление навыков
+            document.getElementById('strength-level').textContent = player.skills.strength.level;
+            document.getElementById('agility-level').textContent = player.skills.agility.level;
+            document.getElementById('intelligence-level').textContent = player.skills.intelligence.level;
+            document.getElementById('stamina-level').textContent = player.skills.stamina.level;
+            
+            document.getElementById('strength-bar').style.width = `${(player.skills.strength.exp / player.skills.strength.expToNextLevel) * 100}%`;
+            document.getElementById('agility-bar').style.width = `${(player.skills.agility.exp / player.skills.agility.expToNextLevel) * 100}%`;
+            document.getElementById('intelligence-bar').style.width = `${(player.skills.intelligence.exp / player.skills.intelligence.expToNextLevel) * 100}%`;
+            document.getElementById('stamina-bar').style.width = `${(player.skills.stamina.exp / player.skills.stamina.expToNextLevel) * 100}%`;
+            
+            // Обновление инвентаря
+            updateInventoryUI();
+            
+            // Обновление кд
+            updateCooldowns();
+        }
+
+        // Функция обновления инвентаря
+        function updateInventoryUI() {
+            const inventoryGrid = document.querySelector('.inventory-grid');
+            inventoryGrid.innerHTML = '';
+            
+            let totalItems = 0;
+            let inventoryValue = 0;
+            
+            for (const itemId in player.inventory) {
+                const item = player.inventory[itemId];
+                if (item.count > 0) {
+                    totalItems += item.count;
+                    inventoryValue += getItemValue(itemId) * item.count;
+                    
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'inventory-item';
+                    itemElement.innerHTML = `
+                        <div class="item-icon">${getItemIcon(itemId)}</div>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-count">${item.count}</div>
+                        <div class="item-rarity rarity-${item.rarity}">${getRarityText(item.rarity)}</div>
+                    `;
+                    inventoryGrid.appendChild(itemElement);
+                }
+            }
+            
+            document.getElementById('total-items').textContent = totalItems;
+            document.getElementById('inventory-value').textContent = inventoryValue;
+        }
+
+        // Функция получения иконки предмета
+        function getItemIcon(itemId) {
+            const icons = {
+                meat: '🍖',
+                fish: '🐟',
+                ore: '⛏️',
+                potion: '🧪',
+                sword: '⚔️',
+                armor: '🛡️',
+                'super-potion': '🔮',
+                'steel-sword': '🗡️',
+                amulet: '📿'
+            };
+            return icons[itemId] || '📦';
+        }
+
+        // Функция получения редкости текстом
+        function getRarityText(rarity) {
+            const rarities = {
+                common: 'Обычн.',
+                uncommon: 'Необычн.',
+                rare: 'Редкий',
+                epic: 'Эпический',
+                legendary: 'Легенд.'
+            };
+            return rarities[rarity] || 'Обычн.';
+        }
+
+        // Функция получения стоимости предмета
+        function getItemValue(itemId) {
+            const values = {
+                meat: 5,
+                fish: 3,
+                ore: 8,
+                potion: 20,
+                sword: 50,
+                armor: 80,
+                'super-potion': 50,
+                'steel-sword': 150,
+                amulet: 300
+            };
+            return values[itemId] || 0;
+        }
+
+        // Функция обновления кд
+        function updateCooldowns() {
+            for (const action in player.cooldowns) {
+                const cooldownElement = document.getElementById(`${action}-cooldown`);
+                if (cooldownElement) {
+                    if (player.cooldowns[action] > 0) {
+                        cooldownElement.textContent = `КД: ${player.cooldowns[action]}с`;
+                    } else {
+                        cooldownElement.textContent = '';
+                    }
+                }
+            }
+        }
+
+        // Функция проверки кд
+        function checkCooldown(action) {
+            return player.cooldowns[action] <= 0;
+        }
+
+        // Функция установки кд
+        function setCooldown(action, seconds) {
+            player.cooldowns[action] = seconds;
+            
+            const interval = setInterval(() => {
+                player.cooldowns[action]--;
+                updateCooldowns();
+                
+                if (player.cooldowns[action] <= 0) {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        // Функция обработки действия
+        function handleAction(action) {
+            if (!checkCooldown(action)) {
+                showNotification('Действие еще на перезарядке!', 'warning');
+                return;
+            }
+            
+            let energyCost = 0;
+            let success = false;
+            let message = '';
+            
+            switch (action) {
+                case 'hunt':
+                    energyCost = 10;
+                    if (player.energy >= energyCost) {
+                        player.energy -= energyCost;
+                        const expGain = 10 + Math.floor(Math.random() * 10);
+                        const goldGain = 5 + Math.floor(Math.random() * 10);
+                        const itemDrop = Math.random() < 0.3 ? 'meat' : null;
+                        
+                        player.exp += expGain;
+                        player.gold += goldGain;
+                        
+                        message = `Вы охотились и получили ${expGain} опыта и ${goldGain} золота`;
+                        
+                        if (itemDrop) {
+                            player.inventory[itemDrop].count++;
+                            message += `, а также ${player.inventory[itemDrop].name}`;
+                        }
+                        
+                        success = true;
+                        setCooldown('hunt', 30);
+                    }
+                    break;
+                    
+                case 'mine':
+                    energyCost = 8;
+                    if (player.energy >= energyCost) {
+                        player.energy -= energyCost;
+                        const expGain = 5 + Math.floor(Math.random() * 5);
+                        const oreGain = 1 + Math.floor(Math.random() * 3);
+                        
+                        player.exp += expGain;
+                        player.inventory.ore.count += oreGain;
+                        
+                        message = `Вы добыли руду и получили ${expGain} опыта и ${oreGain} руды`;
+                        success = true;
+                        setCooldown('mine', 20);
+                    }
+                    break;
+                    
+                case 'fish':
+                    energyCost = 7;
+                    if (player.energy >= energyCost) {
+                        player.energy -= energyCost;
+                        const expGain = 3 + Math.floor(Math.random() * 5);
+                        const fishGain = 1 + Math.floor(Math.random() * 2);
+                        
+                        player.exp += expGain;
+                        player.inventory.fish.count += fishGain;
+                        
+                        message = `Вы рыбачили и получили ${expGain} опыта и ${fishGain} рыбы`;
+                        success = true;
+                        setCooldown('fish', 15);
+                    }
+                    break;
+                    
+                case 'train':
+                    energyCost = 15;
+                    if (player.energy >= energyCost) {
+                        player.energy -= energyCost;
+                        const skill = Object.keys(player.skills)[Math.floor(Math.random() * Object.keys(player.skills).length)];
+                        const expGain = 5 + Math.floor(Math.random() * 10);
+                        
+                        player.skills[skill].exp += expGain;
+                        
+                        // Проверка повышения уровня навыка
+                        if (player.skills[skill].exp >= player.skills[skill].expToNextLevel) {
+                            player.skills[skill].level++;
+                            player.skills[skill].exp = 0;
+                            player.skills[skill].expToNextLevel = Math.floor(player.skills[skill].expToNextLevel * 1.5);
+                            message = `Вы тренировались и повысили ${getSkillName(skill)} до уровня ${player.skills[skill].level}!`;
+                        } else {
+                            message = `Вы тренировались и получили ${expGain} опыта в ${getSkillName(skill)}`;
+                        }
+                        
+                        success = true;
+                        setCooldown('train', 60);
+                    }
+                    break;
+                    
+                case 'quest':
+                    energyCost = 20;
+                    if (player.energy >= energyCost) {
+                        player.energy -= energyCost;
+                        const expGain = 20 + Math.floor(Math.random() * 30);
+                        const goldGain = 15 + Math.floor(Math.random() * 25);
+                        
+                        player.exp += expGain;
+                        player.gold += goldGain;
+                        
+                        message = `Вы выполнили задание и получили ${expGain} опыта и ${goldGain} золота`;
+                        success = true;
+                        setCooldown('quest', 120);
+                    }
+                    break;
+                    
+                case 'bonus':
+                    energyCost = 0;
+                    const now = Date.now();
+                    const lastBonusTime = player.lastBonus || 0;
+                    const oneDay = 24 * 60 * 60 * 1000;
+                    
+                    if (now - lastBonusTime >= oneDay) {
+                        player.lastBonus = now;
+                        const goldGain = 50 + Math.floor(Math.random() * 50);
+                        player.gold += goldGain;
+                        
+                        message = `Вы получили ежедневный бонус: ${goldGain} золота`;
+                        success = true;
+                        setCooldown('bonus', 24 * 60 * 60); // 24 часа
+                    } else {
+                        const nextBonus = Math.ceil((oneDay - (now - lastBonusTime)) / (60 * 60 * 1000));
+                        message = `Следующий бонус через ${nextBonus} часов`;
+                        showNotification(message, 'warning');
+                        return;
+                    }
+                    break;
+                    
+                case 'dungeon':
+                    energyCost = 25;
+                    if (player.energy >= energyCost) {
+                        player.energy -= energyCost;
+                        const expGain = 50 + Math.floor(Math.random() * 50);
+                        const goldGain = 30 + Math.floor(Math.random() * 40);
+                        const itemDrop = Math.random() < 0.5 ? getRandomRareItem() : null;
+                        
+                        player.exp += expGain;
+                        player.gold += goldGain;
+                        
+                        message = `Вы исследовали подземелье и получили ${expGain} опыта и ${goldGain} золота`;
+                        
+                        if (itemDrop) {
+                            player.inventory[itemDrop].count++;
+                            message += `, а также ${player.inventory[itemDrop].name}`;
+                        }
+                        
+                        success = true;
+                        setCooldown('dungeon', 300);
+                    }
+                    break;
+                    
+                case 'rest':
+                    energyCost = -30; // Восстановление энергии
+                    if (player.energy < player.maxEnergy || player.health < player.maxHealth) {
+                        player.energy = Math.min(player.maxEnergy, player.energy + 30);
+                        player.health = Math.min(player.maxHealth, player.health + 20);
+                        
+                        message = `Вы отдохнули и восстановили здоровье и энергию`;
+                        success = true;
+                        setCooldown('rest', 60);
+                    } else {
+                        message = `У вас уже полное здоровье и энергия`;
+                        showNotification(message, 'warning');
+                        return;
+                    }
+                    break;
+            }
+            
+            if (success) {
+                // Проверка повышения уровня
+                checkLevelUp();
+                
+                // Обновление интерфейса
+                updatePlayerUI();
+                
+                // Показ уведомления
+                showNotification(message);
+                
+                // Сохранение игры
+                saveGame();
+            } else if (energyCost > 0 && player.energy < energyCost) {
+                showNotification('Недостаточно энергии!', 'warning');
+            }
+        }
+
+        // Функция получения названия навыка
+        function getSkillName(skillId) {
+            const names = {
+                strength: 'Силу',
+                agility: 'Ловкость',
+                intelligence: 'Интеллект',
+                stamina: 'Выносливость'
+            };
+            return names[skillId] || 'Навык';
+        }
+
+        // Функция получения случайного редкого предмета
+        function getRandomRareItem() {
+            const rareItems = ['potion', 'sword', 'armor', 'super-potion', 'steel-sword', 'amulet'];
+            return rareItems[Math.floor(Math.random() * rareItems.length)];
+        }
+
+        // Функция проверки повышения уровня
+        function checkLevelUp() {
+            if (player.exp >= player.expToNextLevel) {
+                player.level++;
+                player.exp -= player.expToNextLevel;
+                player.expToNextLevel = Math.floor(player.expToNextLevel * 1.5);
+                player.maxHealth += 10;
+                player.health = player.maxHealth;
+                player.maxEnergy += 5;
+                player.energy = player.maxEnergy;
+                
+                showModal('Поздравляем!', `Вы достигли ${player.level} уровня! Ваше здоровье и энергия увеличены.`);
+            }
+        }
+
+        // Функция обработки крафта
+        function handleCraft(item) {
+            let requirementsMet = true;
+            let message = '';
+            
+            switch (item) {
+                case 'potion':
+                    if (player.inventory.meat.count >= 2 && player.inventory.fish.count >= 1) {
+                        player.inventory.meat.count -= 2;
+                        player.inventory.fish.count -= 1;
+                        player.inventory.potion.count++;
+                        message = 'Вы создали простое зелье!';
+                    } else {
+                        requirementsMet = false;
+                        message = 'Не хватает материалов: 2 мяса, 1 рыба';
+                    }
+                    break;
+                    
+                case 'sword':
+                    if (player.inventory.ore.count >= 5 && player.inventory.meat.count >= 2) {
+                        player.inventory.ore.count -= 5;
+                        player.inventory.meat.count -= 2;
+                        player.inventory.sword.count++;
+                        message = 'Вы создали деревянный меч!';
+                    } else {
+                        requirementsMet = false;
+                        message = 'Не хватает материалов: 5 руды, 2 мяса';
+                    }
+                    break;
+                    
+                case 'armor':
+                    if (player.inventory.meat.count >= 10 && player.inventory.fish.count >= 5) {
+                        player.inventory.meat.count -= 10;
+                        player.inventory.fish.count -= 5;
+                        player.inventory.armor.count++;
+                        message = 'Вы создали кожаную броню!';
+                    } else {
+                        requirementsMet = false;
+                        message = 'Не хватает материалов: 10 мяса, 5 рыбы';
+                    }
+                    break;
+                    
+                case 'super-potion':
+                    if (player.inventory.potion.count >= 1 && player.inventory.ore.count >= 5) {
+                        player.inventory.potion.count -= 1;
+                        player.inventory.ore.count -= 5;
+                        player.inventory['super-potion'].count++;
+                        message = 'Вы создали улучшенное зелье!';
+                    } else {
+                        requirementsMet = false;
+                        message = 'Не хватает материалов: 1 простое зелье, 5 руды';
+                    }
+                    break;
+                    
+                case 'steel-sword':
+                    if (player.inventory.ore.count >= 15 && player.inventory.sword.count >= 3) {
+                        player.inventory.ore.count -= 15;
+                        player.inventory.sword.count -= 3;
+                        player.inventory['steel-sword'].count++;
+                        message = 'Вы создали стальной меч!';
+                    } else {
+                        requirementsMet = false;
+                        message = 'Не хватает материалов: 15 руды, 3 деревянных меча';
+                    }
+                    break;
+                    
+                case 'amulet':
+                    if (player.inventory['super-potion'].count >= 5 && player.inventory.ore.count >= 10) {
+                        player.inventory['super-potion'].count -= 5;
+                        player.inventory.ore.count -= 10;
+                        player.inventory.amulet.count++;
+                        message = 'Вы создали магический амулет!';
+                    } else {
+                        requirementsMet = false;
+                        message = 'Не хватает материалов: 5 улучшенных зелий, 10 руды';
+                    }
+                    break;
+            }
+            
+            if (requirementsMet) {
+                showNotification(message);
+                updatePlayerUI();
+                saveGame();
+            } else {
+                showNotification(message, 'warning');
+            }
+        }
+
+        // Функция улучшения навыка
+        function upgradeSkill(skill) {
+            const cost = 50;
+            
+            if (player.gold >= cost) {
+                player.gold -= cost;
+                player.skills[skill].exp += 25;
+                
+                // Проверка повышения уровня навыка
+                if (player.skills[skill].exp >= player.skills[skill].expToNextLevel) {
+                    player.skills[skill].level++;
+                    player.skills[skill].exp = 0;
+                    player.skills[skill].expToNextLevel = Math.floor(player.skills[skill].expToNextLevel * 1.5);
+                    showNotification(`Вы улучшили ${getSkillName(skill)} до уровня ${player.skills[skill].level}!`);
+                } else {
+                    showNotification(`Вы потратили ${cost} золота на тренировку ${getSkillName(skill)}`);
+                }
+                
+                updatePlayerUI();
+                saveGame();
+            } else {
+                showNotification('Недостаточно золота для улучшения навыка!', 'warning');
+            }
+        }
+
+        // Функция покупки на рынке
+        function buyItem(item) {
+            let cost = 0;
+            let message = '';
+            
+            switch (item) {
+                case 'health-potion':
+                    cost = 20;
+                    if (player.gold >= cost) {
+                        player.gold -= cost;
+                        player.health = Math.min(player.maxHealth, player.health + 30);
+                        message = 'Вы купили зелье здоровья и восстановили 30 HP';
+                    }
+                    break;
+                    
+                case 'energy-potion':
+                    cost = 15;
+                    if (player.gold >= cost) {
+                        player.gold -= cost;
+                        player.energy = Math.min(player.maxEnergy, player.energy + 25);
+                        message = 'Вы купили зелье энергии и восстановили 25 энергии';
+                    }
+                    break;
+                    
+                case 'upgraded-sword':
+                    cost = 100;
+                    if (player.gold >= cost) {
+                        player.gold -= cost;
+                        player.inventory['steel-sword'].count++;
+                        message = 'Вы купили улучшенный меч!';
+                    }
+                    break;
+                    
+                case 'defense-amulet':
+                    cost = 80;
+                    if (player.gold >= cost) {
+                        player.gold -= cost;
+                        player.inventory.amulet.count++;
+                        message = 'Вы купили защитный амулет!';
+                    }
+                    break;
+                    
+                case 'treasure-chest':
+                    cost = 200;
+                    if (player.gold >= cost) {
+                        player.gold -= cost;
+                        const reward = 100 + Math.floor(Math.random() * 100);
+                        player.gold += reward;
+                        message = `Вы купили сундук с сокровищами и нашли ${reward} золота!`;
+                    }
+                    break;
+            }
+            
+            if (cost > 0) {
+                if (player.gold >= cost) {
+                    showNotification(message);
+                    updatePlayerUI();
+                    saveGame();
+                } else {
+                    showNotification('Недостаточно золота для покупки!', 'warning');
+                }
+            }
+        }
+
+        // Функция атаки в PvP
+        function attackOpponent(opponentId) {
+            const opponentLevel = [5, 7, 10, 12, 15][opponentId - 1];
+            const winChance = Math.max(0.1, 0.5 - (opponentLevel - player.level) * 0.1);
+            
+            if (Math.random() < winChance) {
+                const expGain = opponentLevel * 5;
+                const goldGain = opponentLevel * 3;
+                
+                player.exp += expGain;
+                player.gold += goldGain;
+                
+                showModal('Победа!', `Вы победили соперника уровня ${opponentLevel} и получили ${expGain} опыта и ${goldGain} золота!`);
+                
+                // Проверка повышения уровня
+                checkLevelUp();
+            } else {
+                const damage = Math.floor(player.health * 0.2);
+                player.health = Math.max(1, player.health - damage);
+                
+                showModal('Поражение!', `Вы проиграли сопернику уровня ${opponentLevel} и потеряли ${damage} здоровья.`);
+            }
+            
+            updatePlayerUI();
+            saveGame();
+        }
+
+        // Функция входа в игру
+        function login() {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            
+            if (!username) {
+                showNotification('Введите имя пользователя!', 'warning');
+                return;
+            }
+            
+            // Проверка админ-доступа
+            if (username === 'admin' && password === 'Zak222z8q') {
+                player.isAdmin = true;
+                adminTab.style.display = 'block';
+                showNotification('Добро пожаловать, Администратор!', 'success');
+            } else if (username === 'admin') {
+                showNotification('Неверный пароль для администратора!', 'error');
+                return;
+            }
+            
+            player.username = username;
+            
+            // Загрузка сохранения игрока
+            loadGame();
+            
+            // Переключение на игровой экран
+            loginScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // Обновление интерфейса
+            updatePlayerUI();
+            
+            showNotification(`Добро пожаловать, ${username}!`, 'success');
+        }
+
+        // Функция сохранения игры
+        function saveGame() {
+            const saveData = {
+                player: player,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('rpgFantasySave', JSON.stringify(saveData));
+        }
+
+        // Функция загрузки игры
+        function loadGame() {
+            const saveData = localStorage.getItem('rpgFantasySave');
+            
+            if (saveData) {
+                try {
+                    const parsedData = JSON.parse(saveData);
+                    
+                    // Сохраняем только данные игрока, не перезаписывая имя пользователя и админ-статус
+                    const savedPlayer = parsedData.player;
+                    player.level = savedPlayer.level || player.level;
+                    player.exp = savedPlayer.exp || player.exp;
+                    player.expToNextLevel = savedPlayer.expToNextLevel || player.expToNextLevel;
+                    player.health = savedPlayer.health || player.health;
+                    player.maxHealth = savedPlayer.maxHealth || player.maxHealth;
+                    player.energy = savedPlayer.energy || player.energy;
+                    player.maxEnergy = savedPlayer.maxEnergy || player.maxEnergy;
+                    player.gold = savedPlayer.gold || player.gold;
+                    player.skills = savedPlayer.skills || player.skills;
+                    player.inventory = savedPlayer.inventory || player.inventory;
+                    player.cooldowns = savedPlayer.cooldowns || player.cooldowns;
+                    player.lastBonus = savedPlayer.lastBonus || player.lastBonus;
+                    
+                    showNotification('Игра загружена!', 'success');
+                } catch (e) {
+                    console.error('Ошибка загрузки сохранения:', e);
+                    showNotification('Ошибка загрузки сохранения', 'error');
+                }
+            }
+        }
+
+        // Функция сброса игрока
+        function resetPlayer() {
+            if (confirm('Вы уверены, что хотите сбросить прогресс? Это действие нельзя отменить.')) {
+                player = {
+                    username: player.username,
+                    level: 1,
+                    exp: 0,
+                    expToNextLevel: 100,
+                    health: 100,
+                    maxHealth: 100,
+                    energy: 100,
+                    maxEnergy: 100,
+                    gold: 50,
+                    isAdmin: player.isAdmin,
+                    skills: {
+                        strength: { level: 1, exp: 0, expToNextLevel: 100 },
+                        agility: { level: 1, exp: 0, expToNextLevel: 100 },
+                        intelligence: { level: 1, exp: 0, expToNextLevel: 100 },
+                        stamina: { level: 1, exp: 0, expToNextLevel: 100 }
+                    },
+                    inventory: {
+                        meat: { name: 'Мясо', count: 0, rarity: 'common' },
+                        fish: { name: 'Рыба', count: 0, rarity: 'common' },
+                        ore: { name: 'Руда', count: 0, rarity: 'common' },
+                        potion: { name: 'Простое зелье', count: 0, rarity: 'uncommon' },
+                        sword: { name: 'Деревянный меч', count: 0, rarity: 'uncommon' },
+                        armor: { name: 'Кожаная броня', count: 0, rarity: 'rare' },
+                        'super-potion': { name: 'Улучшенное зелье', count: 0, rarity: 'rare' },
+                        'steel-sword': { name: 'Стальной меч', count: 0, rarity: 'epic' },
+                        amulet: { name: 'Магический амулет', count: 0, rarity: 'legendary' }
+                    },
+                    cooldowns: {
+                        hunt: 0,
+                        mine: 0,
+                        fish: 0,
+                        train: 0,
+                        quest: 0,
+                        bonus: 0,
+                        dungeon: 0,
+                        rest: 0
+                    },
+                    lastBonus: 0
+                };
+                
+                updatePlayerUI();
+                saveGame();
+                showNotification('Прогресс сброшен!', 'success');
+            }
+        }
+
+        // Инициализация игры
+        function initGame() {
+            // Обработчик входа
+            loginButton.addEventListener('click', login);
+            
+            // Обработчик нажатия Enter в поле пароля
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            // Обработчик регистрации
+            registerLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Для регистрации перейдите в бот Telegram!', 'info');
+            });
+            
+            // Обработчики вкладок
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Скрыть все вкладки
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Убрать активный класс со всех вкладок
+                    document.querySelectorAll('.nav-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Показать выбранную вкладку
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    this.classList.add('active');
+                });
+            });
+            
+            // Обработчики действий
+            document.querySelectorAll('.action-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    if (!this.classList.contains('disabled')) {
+                        const action = this.getAttribute('data-action');
+                        handleAction(action);
+                    }
+                });
+            });
+            
+            // Обработчики крафта
+            document.querySelectorAll('.craft-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const craft = this.getAttribute('data-craft');
+                    handleCraft(craft);
+                });
+            });
+            
+            // Обработчики улучшения навыков
+            document.querySelectorAll('.upgrade-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const skill = this.getAttribute('data-skill');
+                    upgradeSkill(skill);
+                });
+            });
+            
+            // Обработчики PvP
+            document.querySelectorAll('.attack-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const opponent = this.getAttribute('data-opponent');
+                    attackOpponent(opponent);
+                });
+            });
+            
+            // Обработчики рынка
+            document.querySelectorAll('.buy-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const item = this.getAttribute('data-item');
+                    buyItem(item);
+                });
+            });
+            
+            // Обработчики админ-панели
+            document.getElementById('add-gold').addEventListener('click', function() {
+                if (!player.isAdmin) {
+                    showNotification('Доступ запрещен!', 'error');
+                    return;
+                }
+                
+                const amount = parseInt(document.getElementById('admin-gold').value) || 0;
+                if (amount > 0) {
+                    player.gold += amount;
+                    updatePlayerUI();
+                    saveGame();
+                    showNotification(`Добавлено ${amount} золота`, 'success');
+                    document.getElementById('admin-gold').value = '';
+                }
+            });
+            
+            document.getElementById('add-exp').addEventListener('click', function() {
+                if (!player.isAdmin) {
+                    showNotification('Доступ запрещен!', 'error');
+                    return;
+                }
+                
+                const amount = parseInt(document.getElementById('admin-exp').value) || 0;
+                if (amount > 0) {
+                    player.exp += amount;
+                    checkLevelUp();
+                    updatePlayerUI();
+                    saveGame();
+                    showNotification(`Добавлено ${amount} опыта`, 'success');
+                    document.getElementById('admin-exp').value = '';
+                }
+            });
+            
+            document.getElementById('set-level').addEventListener('click', function() {
+                if (!player.isAdmin) {
+                    showNotification('Доступ запрещен!', 'error');
+                    return;
+                }
+                
+                const level = parseInt(document.getElementById('admin-level').value) || 1;
+                if (level > 0 && level <= 100) {
+                    player.level = level;
+                    player.exp = 0;
+                    player.expToNextLevel = 100 * Math.pow(1.5, level - 1);
+                    player.maxHealth = 100 + (level - 1) * 10;
+                    player.health = player.maxHealth;
+                    player.maxEnergy = 100 + (level - 1) * 5;
+                    player.energy = player.maxEnergy;
+                    
+                    updatePlayerUI();
+                    saveGame();
+                    showNotification(`Установлен уровень ${level}`, 'success');
+                    document.getElementById('admin-level').value = '';
+                }
+            });
+            
+            document.getElementById('add-item').addEventListener('click', function() {
+                if (!player.isAdmin) {
+                    showNotification('Доступ запрещен!', 'error');
+                    return;
+                }
+                
+                const item = document.getElementById('admin-item').value;
+                const count = parseInt(document.getElementById('admin-item-count').value) || 1;
+                
+                if (count > 0) {
+                    player.inventory[item].count += count;
+                    updatePlayerUI();
+                    saveGame();
+                    showNotification(`Добавлено ${count} ${player.inventory[item].name}`, 'success');
+                    document.getElementById('admin-item-count').value = '';
+                }
+            });
+            
+            document.getElementById('reset-player').addEventListener('click', function() {
+                if (!player.isAdmin) {
+                    showNotification('Доступ запрещен!', 'error');
+                    return;
+                }
+                
+                resetPlayer();
+            });
+            
+            document.getElementById('save-game').addEventListener('click', function() {
+                if (!player.isAdmin) {
+                    showNotification('Доступ запрещен!', 'error');
+                    return;
+                }
+                
+                saveGame();
+                showNotification('Игра сохранена!', 'success');
+            });
+            
+            document.getElementById('load-game').addEventListener('click', function() {
+                if (!player.isAdmin) {
+                    showNotification('Доступ запрещен!', 'error');
+                    return;
+                }
+                
+                loadGame();
+                updatePlayerUI();
+            });
+            
+            // Автоматическое сохранение каждые 30 секунд
+            setInterval(saveGame, 30000);
+            
+            // Загрузка сохранения при запуске
+            loadGame();
+        }
+
+        // Запуск игры при загрузке страницы
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
